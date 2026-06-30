@@ -1,0 +1,52 @@
+/**
+ * Adapters that back pi's read/write/edit/bash tools with a Docker Sandbox.
+ *
+ * pi's tool factories (createBashToolDefinition, createReadToolDefinition, …)
+ * accept pluggable operations. By supplying these, the agent's file and shell
+ * tools execute inside the container instead of on the host — without the agent
+ * loop knowing anything changed.
+ */
+import type {
+  BashOperations,
+  EditOperations,
+  ReadOperations,
+  WriteOperations,
+} from "@earendil-works/pi-coding-agent";
+import type { Sandbox } from "./docker.js";
+
+export function dockerBashOperations(sandbox: Sandbox): BashOperations {
+  return {
+    exec: (command, cwd, options) =>
+      sandbox.exec(command, {
+        cwd,
+        onData: options.onData,
+        signal: options.signal,
+        timeout: options.timeout,
+        env: options.env,
+      }),
+  };
+}
+
+export function dockerReadOperations(sandbox: Sandbox): ReadOperations {
+  return {
+    readFile: (absPath) => sandbox.readFile(absPath),
+    access: (absPath) => sandbox.access(absPath, "r"),
+    // Treat everything as non-image inside the sandbox (text-first workflow).
+    detectImageMimeType: async () => null,
+  };
+}
+
+export function dockerWriteOperations(sandbox: Sandbox): WriteOperations {
+  return {
+    writeFile: (absPath, content) => sandbox.writeFile(absPath, content),
+    mkdir: (dir) => sandbox.mkdir(dir),
+  };
+}
+
+export function dockerEditOperations(sandbox: Sandbox): EditOperations {
+  return {
+    readFile: (absPath) => sandbox.readFile(absPath),
+    writeFile: (absPath, content) => sandbox.writeFile(absPath, content),
+    access: (absPath) => sandbox.access(absPath, "rw"),
+  };
+}
