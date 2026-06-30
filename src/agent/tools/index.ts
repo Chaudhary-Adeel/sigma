@@ -21,7 +21,8 @@ import { listSkills, setSkillEnabled } from "../../domain/skills.js";
 import { createTask, getTask, listTasks } from "../../domain/tasks.js";
 import { scheduleTask } from "../../sandbox/scheduler.js";
 import { runTask } from "../../sandbox/runner.js";
-import { Sandbox } from "../../sandbox/docker.js";
+import { createSandbox } from "../../sandbox/index.js";
+import type { SandboxBackend } from "../../sandbox/types.js";
 import { runSubAgent } from "../subagent.js";
 import type { AnyTool } from "../../connectors/registry.js";
 
@@ -45,9 +46,9 @@ const delegate = defineTool({
     }
     const ws = path.join(PATHS.workspaces, "_delegate", randomUUID());
     mkdirSync(ws, { recursive: true });
-    let sandbox: Sandbox | undefined;
+    let sandbox: SandboxBackend | undefined;
     try {
-      sandbox = await Sandbox.create("delegate", ws);
+      sandbox = await createSandbox("delegate", ws);
       const r = await runSubAgent({ role, task: params.instruction, sandbox, signal });
       return text(r.result);
     } catch (err) {

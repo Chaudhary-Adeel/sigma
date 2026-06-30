@@ -1,5 +1,5 @@
 /**
- * Adapters that back pi's read/write/edit/bash tools with a Docker Sandbox.
+ * Adapters that back pi's read/write/edit/bash tools with a sandbox backend.
  *
  * pi's tool factories (createBashToolDefinition, createReadToolDefinition, …)
  * accept pluggable operations. By supplying these, the agent's file and shell
@@ -12,9 +12,9 @@ import type {
   ReadOperations,
   WriteOperations,
 } from "@earendil-works/pi-coding-agent";
-import type { Sandbox } from "./docker.js";
+import type { SandboxBackend } from "./types.js";
 
-export function dockerBashOperations(sandbox: Sandbox): BashOperations {
+export function sandboxBashOperations(sandbox: SandboxBackend): BashOperations {
   return {
     exec: (command, cwd, options) =>
       sandbox.exec(command, {
@@ -27,7 +27,7 @@ export function dockerBashOperations(sandbox: Sandbox): BashOperations {
   };
 }
 
-export function dockerReadOperations(sandbox: Sandbox): ReadOperations {
+export function sandboxReadOperations(sandbox: SandboxBackend): ReadOperations {
   return {
     readFile: (absPath) => sandbox.readFile(absPath),
     access: (absPath) => sandbox.access(absPath, "r"),
@@ -36,14 +36,14 @@ export function dockerReadOperations(sandbox: Sandbox): ReadOperations {
   };
 }
 
-export function dockerWriteOperations(sandbox: Sandbox): WriteOperations {
+export function sandboxWriteOperations(sandbox: SandboxBackend): WriteOperations {
   return {
     writeFile: (absPath, content) => sandbox.writeFile(absPath, content),
     mkdir: (dir) => sandbox.mkdir(dir),
   };
 }
 
-export function dockerEditOperations(sandbox: Sandbox): EditOperations {
+export function sandboxEditOperations(sandbox: SandboxBackend): EditOperations {
   return {
     readFile: (absPath) => sandbox.readFile(absPath),
     writeFile: (absPath, content) => sandbox.writeFile(absPath, content),

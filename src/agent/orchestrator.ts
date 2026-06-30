@@ -15,7 +15,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import { DEFAULT_MODEL_ID, PATHS } from "../config/settings.js";
-import { getAuthStorage, getModelRegistry, resolveModel } from "../config/models.js";
+import { getAuthStorage, getDefaultModel, getModelRegistry, resolveModel } from "../config/models.js";
 import { buildOrchestratorTools } from "./tools/index.js";
 import { ORCHESTRATOR_PROMPT } from "./prompts.js";
 
@@ -26,7 +26,7 @@ export interface OrchestratorOptions {
 }
 
 export async function createOrchestrator(opts: OrchestratorOptions = {}): Promise<AgentSession> {
-  const model = resolveModel(opts.modelId ?? DEFAULT_MODEL_ID);
+  const model = opts.modelId ? resolveModel(opts.modelId) : getDefaultModel();
   const tools = buildOrchestratorTools();
 
   const loader = new DefaultResourceLoader({

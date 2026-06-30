@@ -40,7 +40,11 @@ export const PATHS = {
 /** Default model, "provider/id" form. */
 export const DEFAULT_MODEL_ID = process.env.SIGMA_MODEL || "deepseek/deepseek-chat";
 
+export type SandboxBackendKind = "docker" | "local" | "auto";
+
 export interface SandboxConfig {
+  /** "docker" (isolated, default), "local" (host, not isolated), or "auto" (docker if usable, else local). */
+  backend: SandboxBackendKind;
   image: string;
   noNetwork: boolean;
   memory: string;
@@ -49,7 +53,12 @@ export interface SandboxConfig {
   workdir: string;
 }
 
+function parseBackend(v: string | undefined): SandboxBackendKind {
+  return v === "local" || v === "auto" ? v : "docker";
+}
+
 export const SANDBOX: SandboxConfig = {
+  backend: parseBackend(process.env.SIGMA_SANDBOX_BACKEND),
   image: process.env.SIGMA_SANDBOX_IMAGE || "node:22-bookworm-slim",
   noNetwork: /^true$/i.test(process.env.SIGMA_SANDBOX_NO_NETWORK || ""),
   memory: process.env.SIGMA_SANDBOX_MEMORY || "2g",

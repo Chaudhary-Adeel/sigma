@@ -8,6 +8,7 @@
  */
 import Docker from "dockerode";
 import { SANDBOX } from "../config/settings.js";
+import type { ExecResult, SandboxBackend } from "./types.js";
 
 let _docker: Docker | undefined;
 
@@ -52,20 +53,16 @@ async function ensureImage(image: string): Promise<void> {
   }
 }
 
-export interface ExecResult {
-  exitCode: number | null;
-  stdout: Buffer;
-  stderr: Buffer;
-}
+export class DockerSandbox implements SandboxBackend {
+  readonly workdir = SANDBOX.workdir;
 
-export class Sandbox {
   private constructor(
     readonly container: Docker.Container,
     readonly workspaceHostDir: string,
   ) {}
 
   /** Create and start a sandbox with the host workspace bind-mounted at workdir. */
-  static async create(name: string, workspaceHostDir: string): Promise<Sandbox> {
+  static async create(name: string, workspaceHostDir: string): Promise<DockerSandbox> {
     await ensureImage(SANDBOX.image);
     const container = await docker().createContainer({
       name: `sigma-${name}-${Date.now()}`,
@@ -82,7 +79,7 @@ export class Sandbox {
       },
     });
     await container.start();
-    return new Sandbox(container, workspaceHostDir);
+    return new DockerSandbox(container, workspaceHostDir);
   }
 
   /** Run a command, streaming combined output via onData. Returns the exit code. */

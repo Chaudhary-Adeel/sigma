@@ -13,7 +13,8 @@ import { getAgent, type AgentDef } from "../domain/agents.js";
 import { setTaskStatus, updateTask, getTask } from "../domain/tasks.js";
 import { appendRunLog, finishRun, startRun } from "../domain/runs.js";
 import { runSubAgent, type SubAgentResult } from "../agent/subagent.js";
-import { Sandbox } from "./docker.js";
+import { createSandbox } from "./index.js";
+import type { SandboxBackend } from "./types.js";
 
 const FALLBACK_ROLE: AgentDef = {
   id: "coder",
@@ -45,9 +46,9 @@ export async function runTask(taskId: string, opts: RunTaskOptions = {}): Promis
   const run = startRun(task.id, role.id);
   updateTask(task.id, { status: "running", workspace, lastRunId: run.id });
 
-  let sandbox: Sandbox | undefined;
+  let sandbox: SandboxBackend | undefined;
   try {
-    sandbox = await Sandbox.create(task.id.slice(0, 8), workspace);
+    sandbox = await createSandbox(task.id.slice(0, 8), workspace);
     const result = await runSubAgent({
       role,
       task: task.spec,

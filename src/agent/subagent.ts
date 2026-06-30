@@ -18,7 +18,7 @@ import { getAuthStorage, getDefaultModel, getModelRegistry, resolveModel } from 
 import { collectConnectorTools } from "../connectors/registry.js";
 import type { AgentDef } from "../domain/agents.js";
 import type { RunUsage } from "../domain/runs.js";
-import type { Sandbox } from "../sandbox/docker.js";
+import type { SandboxBackend } from "../sandbox/types.js";
 import { extractResult, looksSuccessful, statsToUsage } from "./context.js";
 import { buildRolePrompt } from "./prompts.js";
 
@@ -27,7 +27,7 @@ export interface SubAgentRunOptions {
   /** The delegated instruction. */
   task: string;
   /** Sandbox the shell connector binds to (required for shell-using roles). */
-  sandbox?: Sandbox;
+  sandbox?: SandboxBackend;
   onEvent?: (event: AgentSessionEvent) => void;
   /** Streamed combined text/log output (for run logs). */
   onLog?: (chunk: string) => void;
@@ -48,7 +48,7 @@ export async function runSubAgent(opts: SubAgentRunOptions): Promise<SubAgentRes
   const model = role.model ? resolveModel(role.model) : getDefaultModel();
 
   const tools = collectConnectorTools(role.connectors, { sandbox: opts.sandbox });
-  const systemPrompt = buildRolePrompt(role);
+  const systemPrompt = buildRolePrompt(role, opts.sandbox?.workdir ?? "/work");
 
   const loader = new DefaultResourceLoader({
     cwd: process.cwd(),

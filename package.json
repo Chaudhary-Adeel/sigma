@@ -12,7 +12,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "tsx src/cli/index.ts",
     "sigma": "tsx src/cli/index.ts",
-    "start": "node dist/cli/index.js"
+    "start": "node dist/cli/index.js",
+    "test": "SIGMA_SANDBOX_BACKEND=local SIGMA_HOME=\"$(mktemp -d)\" tsx test/e2e.ts",
+    "test:e2e": "SIGMA_SANDBOX_BACKEND=local SIGMA_HOME=\"$(mktemp -d)\" tsx test/e2e.ts"
   },
   "engines": {
     "node": ">=20"

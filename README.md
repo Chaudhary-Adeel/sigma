@@ -40,12 +40,19 @@ primes from 2 to 97. Artifact: /work/primes.py.
 - **Skills.** Curated `SKILL.md` packs (`software-build`, `git-workflow`,
   `gmail-triage`, `token-budget`) injected into the relevant role's prompt.
 
-### Why Docker is required
+### Execution backends
 
-Pi has no built-in permission system, so **the container is the trust boundary**:
-sub-agents run arbitrary code only inside a per-task sandbox with a bind-mounted
-workspace, resource limits, and an optional network cutoff. Nothing runs on your
-host.
+Pi has no built-in permission system, so by default **the container is the trust
+boundary**: sub-agents run arbitrary code only inside a per-task Docker sandbox with
+a bind-mounted workspace, resource limits, and an optional network cutoff.
+
+Set `SIGMA_SANDBOX_BACKEND`:
+
+| Value | Behavior |
+| --- | --- |
+| `docker` (default) | Isolated container per task. Recommended. |
+| `local` | Runs on the host, scoped to the task workspace. **Not isolated** — only for trusted environments or where Docker isn't available. |
+| `auto` | Docker when the daemon + image are usable, else falls back to `local` (with a warning). |
 
 ### Token efficiency
 
@@ -68,11 +75,22 @@ npm run build
 cp .env.example .env          # then add DEEPSEEK_API_KEY (and GITHUB_TOKEN etc.)
 docker pull node:22-bookworm-slim   # the default sandbox image
 
-node dist/cli/index.js doctor # verify model, Docker, image, connectors
+node dist/cli/index.js doctor # verify model, sandbox, connectors
 node dist/cli/index.js        # launch the interactive portal
 ```
 
-Requirements: Node ≥ 20, a running Docker daemon, and an API key for your chosen model.
+Requirements: Node ≥ 20, an API key for your chosen model, and either a Docker daemon
+(default) or `SIGMA_SANDBOX_BACKEND=local` for host execution.
+
+### Tests
+
+An offline end-to-end test exercises the whole loop (orchestrator → delegate →
+sub-agent file/bash in a sandbox → `RESULT` → reply, plus the tracked-task runner)
+using Pi's faux provider and the local backend — **no API key or Docker required**:
+
+```bash
+npm test
+```
 
 ## CLI
 
@@ -133,8 +151,11 @@ config/        bundled models.json template
 
 ## Status & limitations
 
-- Running tasks requires a reachable Docker daemon **that can obtain the sandbox image**
-  (`docker pull node:22-bookworm-slim`, or point `SIGMA_SANDBOX_IMAGE` at a local image).
+- The whole orchestration loop is verified end-to-end by `npm test` (offline, faux
+  provider, local backend).
 - Live model calls require a valid API key for the configured provider.
+- Docker isolation requires a reachable daemon **that can obtain the sandbox image**
+  (`docker pull node:22-bookworm-slim`, or point `SIGMA_SANDBOX_IMAGE` at a local image).
+  Use `SIGMA_SANDBOX_BACKEND=local` to run without Docker (not isolated).
 - The portal is terminal-native (readline); a full-screen TUI and additional connectors
   are natural next steps.

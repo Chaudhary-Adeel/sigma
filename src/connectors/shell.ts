@@ -11,39 +11,37 @@ import {
   createReadToolDefinition,
   createWriteToolDefinition,
 } from "@earendil-works/pi-coding-agent";
-import { SANDBOX } from "../config/settings.js";
-import { dockerPing } from "../sandbox/docker.js";
+import { describeBackend } from "../sandbox/index.js";
 import {
-  dockerBashOperations,
-  dockerEditOperations,
-  dockerReadOperations,
-  dockerWriteOperations,
+  sandboxBashOperations,
+  sandboxEditOperations,
+  sandboxReadOperations,
+  sandboxWriteOperations,
 } from "../sandbox/operations.js";
 import type { Connector } from "./registry.js";
 
 export const shellConnector: Connector = {
   id: "shell",
   name: "Filesystem & Shell",
-  description: "Sandboxed bash + file read/write/edit inside the task's Docker container.",
+  description: "Sandboxed bash + file read/write/edit inside the task's sandbox.",
 
   async status() {
-    try {
-      const v = await dockerPing();
-      return { status: "connected", detail: `Docker daemon ${v}` };
-    } catch (err) {
-      return { status: "error", detail: (err as Error).message };
-    }
+    const b = await describeBackend();
+    return {
+      status: b.ok ? ("connected" as const) : ("error" as const),
+      detail: `${b.kind}: ${b.detail}`,
+    };
   },
 
   tools(ctx) {
     if (!ctx.sandbox) return [];
-    const cwd = SANDBOX.workdir;
     const sb = ctx.sandbox;
+    const cwd = sb.workdir;
     return [
-      createReadToolDefinition(cwd, { operations: dockerReadOperations(sb) }),
-      createWriteToolDefinition(cwd, { operations: dockerWriteOperations(sb) }),
-      createEditToolDefinition(cwd, { operations: dockerEditOperations(sb) }),
-      createBashToolDefinition(cwd, { operations: dockerBashOperations(sb) }),
+      createReadToolDefinition(cwd, { operations: sandboxReadOperations(sb) }),
+      createWriteToolDefinition(cwd, { operations: sandboxWriteOperations(sb) }),
+      createEditToolDefinition(cwd, { operations: sandboxEditOperations(sb) }),
+      createBashToolDefinition(cwd, { operations: sandboxBashOperations(sb) }),
     ];
   },
 };

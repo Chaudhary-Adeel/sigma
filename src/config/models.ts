@@ -66,8 +66,20 @@ export function resolveModel(id: string): Model<Api> {
   return model;
 }
 
+/**
+ * Optional process-wide model override. When set, it takes precedence over the
+ * configured default for the orchestrator and any role that doesn't pin its own
+ * model. Used to force a model object that isn't in models.json (e.g. a faux
+ * provider in tests, or a runtime-registered provider).
+ */
+let _override: Model<Api> | undefined;
+
+export function setModelOverride(model: Model<Api> | undefined): void {
+  _override = model;
+}
+
 export function getDefaultModel(): Model<Api> {
-  return resolveModel(DEFAULT_MODEL_ID);
+  return _override ?? resolveModel(DEFAULT_MODEL_ID);
 }
 
 /** True if the default model has a usable API key configured. */

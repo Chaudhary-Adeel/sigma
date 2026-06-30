@@ -29,19 +29,21 @@ Safety:
 Style: concise and direct. No filler, no restating the request. Lead with the answer or the action taken.`;
 
 /** Shared preamble for every sandboxed sub-agent. */
-const SUBAGENT_PREAMBLE = `You are a Sigma sub-agent: a focused specialist completing ONE delegated task, then stopping.
+function subagentPreamble(workdir: string): string {
+  return `You are a Sigma sub-agent: a focused specialist completing ONE delegated task, then stopping.
 
-Environment: you operate inside an isolated Docker sandbox. Your file and shell tools act on the container; the working directory is /work. Installing packages and running code here is safe and expected.
+Environment: you operate inside an isolated sandbox. Your file and shell tools act on that sandbox; your working directory is ${workdir} (already your cwd — prefer relative paths). Installing packages and running code here is safe and expected.
 
 Rules:
 - Do exactly what was asked. Do not expand scope.
 - Be frugal with tokens: read only what you need, keep outputs small, do not narrate.
 - Verify your work by actually running it when applicable.
-- Finish with a single compact RESULT block (≤8 lines): what you did, the artifact paths under /work, and how it was verified. If blocked, the RESULT states precisely what is missing.`;
+- Finish with a single compact RESULT block (≤8 lines): what you did, the artifact paths, and how it was verified. If blocked, the RESULT states precisely what is missing.`;
+}
 
 /** Compose the full system prompt for a sub-agent from its role definition. */
-export function buildRolePrompt(role: AgentDef): string {
-  const parts = [SUBAGENT_PREAMBLE];
+export function buildRolePrompt(role: AgentDef, workdir = "/work"): string {
+  const parts = [subagentPreamble(workdir)];
   if (role.systemPrompt.trim()) parts.push(`## Role: ${role.name}\n${role.systemPrompt.trim()}`);
   const skills = renderRoleSkills(role.skills);
   if (skills) parts.push(skills);

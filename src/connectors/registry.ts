@@ -9,14 +9,14 @@
  */
 import type { ToolDefinition } from "@earendil-works/pi-coding-agent";
 import type { ConnectorStatus } from "../db/schema.js";
-import type { Sandbox } from "../sandbox/docker.js";
+import type { SandboxBackend } from "../sandbox/types.js";
 
 /** Tool definitions vary in their param/detail generics; we treat them uniformly. */
 export type AnyTool = ToolDefinition<any, any, any>;
 
 export interface ConnectorToolContext {
   /** The task's sandbox, when running inside one (required by the shell connector). */
-  sandbox?: Sandbox;
+  sandbox?: SandboxBackend;
 }
 
 export interface ConnectorStatusResult {
