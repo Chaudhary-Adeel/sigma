@@ -1,0 +1,44 @@
+{
+  "name": "sigma",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sigma — a Pi-native personal AI orchestration system (Jarvis-style). One orchestrator agent delegates to sandboxed sub-agents across Tasks, Agents, Connectors and Skills.",
+  "bin": {
+    "sigma": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/cli/index.ts",
+    "sigma": "tsx src/cli/index.ts",
+    "start": "node dist/cli/index.js",
+    "test": "SIGMA_SANDBOX_BACKEND=local SIGMA_HOME=\"$(mktemp -d)\" tsx test/e2e.ts",
+    "test:e2e": "SIGMA_SANDBOX_BACKEND=local SIGMA_HOME=\"$(mktemp -d)\" tsx test/e2e.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "0.80.2",
+    "@earendil-works/pi-ai": "0.80.2",
+    "@earendil-works/pi-coding-agent": "0.80.2",
+    "@octokit/rest": "^21.1.1",
+    "better-sqlite3": "^11.8.1",
+    "commander": "^13.1.0",
+    "dockerode": "^4.0.4",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.39.3",
+    "googleapis": "^144.0.0",
+    "node-cron": "^3.0.3",
+    "typebox": "1.1.38"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/dockerode": "^3.3.35",
+    "@types/node": "^22.13.1",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
